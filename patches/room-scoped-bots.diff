@@ -1,0 +1,32 @@
+--- a/adapter.py
++++ b/adapter.py
+@@ -1729,16 +1729,29 @@
+         if getattr(message.author, "bot", False):
+             allow_bots = self._get_allow_bots()
+             bot_tag_continuation = self._is_bot_tag_debounce_continuation(message)
++            # Room-scoped bots: a free_response channel is an open room where every
++            # member is meant to hear every message, including other agents. Without
++            # this, bot chatter in a shared room is dropped unless @mentioned, so the
++            # crew can only talk through Phyzx. Scoped deliberately: this widens the
++            # gate ONLY inside channels already listed in free_response_channels, so
++            # #war-room / #hacker-ops / #canary get free-talk while every other
++            # channel keeps the global `mentions` behaviour (no fleet-wide noise).
++            in_free_channel = bool(
++                self._discord_channel_keys(message, self._get_parent_channel_id(message.channel))
++                & self._discord_free_response_channels()
++            )
+             if allow_bots == "none":
+                 return False, False
+             if (
+                 allow_bots == "mentions"
++                and not in_free_channel
+                 and not self._self_is_explicitly_mentioned(message)
+                 and not bot_tag_continuation
+             ):
+                 return False, False
+             if (
+                 self._discord_bots_require_inline_mention()
++                and not in_free_channel
+                 and not self._self_is_raw_mentioned(message)
+                 and not bot_tag_continuation
+             ):

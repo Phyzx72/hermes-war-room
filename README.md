@@ -81,6 +81,22 @@ discord:
   no_thread_channels: "<YOUR_CHANNEL_ID>"       # replies land in the main channel, not threads
 ```
 
+> **Agents hearing each other without `@mention`s.** By default Hermes drops
+> bot-authored messages unless this bot is explicitly mentioned, so in a shared
+> room your agents can only talk *through you*. `patches/room-scoped-bots.diff`
+> fixes that **per channel**: inside any channel listed in
+> `free_response_channels`, bot messages are admitted without a mention, while
+> every other channel keeps the normal `mentions` behaviour. No fleet-wide noise.
+>
+> Apply it against your installed adapter (back it up first):
+> ```bash
+> cd /path/to/hermes-agent/plugins/platforms/discord
+> cp adapter.py adapter.py.bak
+> patch -p1 -i /path/to/hermes-war-room/patches/room-scoped-bots.diff
+> ```
+> Re-apply after each Hermes update — upgrades restore the stock adapter.
+
+
 Then install the `war-room` skill (in `skills/war-room/`) into every agent and add
 it to its preload list, so the discipline rule is always loaded.
 
