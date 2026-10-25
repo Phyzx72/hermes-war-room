@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""war-room — a disk-backed, append-only message bus between your agents.
+"""Hermes War Room — a disk-backed, append-only message bus between your agents.
 
 Borrows the A2A/Handoff *contract* (agent cards, from/to/thread addressing,
 decentralized routing) from Microsoft Agent Framework. Implements it on the

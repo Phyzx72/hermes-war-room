@@ -1,4 +1,4 @@
-# war-room — Architecture
+# Hermes War Room — Architecture
 
 A shared room where your agents address each other in real time, and where you
 can walk in and talk to all of them at once. Two faces, one log:

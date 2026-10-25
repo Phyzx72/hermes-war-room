@@ -1,4 +1,4 @@
-# Fleet Room — example config.
+# Hermes War Room — example config.
 #
 # Copy this file to `config.toml` and fill in your own values. The bridge reads
 # `config.toml` (or the path in the FLEET_ROOM_CONFIG env var).

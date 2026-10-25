@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""war-room bridge — the membrane between the Discord room and the disk room.
+"""Hermes War Room bridge — the membrane between the Discord room and the disk room.
 
 Face 1 (disk):   <room.dir>/log.jsonl — append-only, survives restarts; agents
                  read/write on their own cycles (see room.py).

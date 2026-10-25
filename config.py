@@ -1,4 +1,4 @@
-"""war-room config loader.
+"""Hermes War Room config loader.
 
 Reads ``config.toml`` (or the path in ``FLEET_ROOM_CONFIG``) and exposes resolved
 runtime values. This is the single source of truth that ``room.py``, ``bridge.py``
@@ -55,7 +55,7 @@ OWNER_ID = _discord.get("owner_id", "")
 OWNER_NAME = _discord.get("owner_name", "you")
 
 API = "https://discord.com/api/v10"
-UA = "war-room-bridge/1.0"
+UA = "hermes-war-room-bridge/1.0"
 
 # ── hermes ────────────────────────────────────────────────────────────────────
 HERMES_PROFILES_DIR = _resolve(

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""war-room watcher — real-time wakeup for the disk room.
+"""Hermes War Room watcher — real-time wakeup for the disk room.
 
 Tails log.jsonl and, on each new message, signals the addressed agent so it
 responds NOW rather than on its next cycle. This is the push layer that turns

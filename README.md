@@ -1,6 +1,6 @@
-# war-room
+# Hermes War Room
 
-A shared room where your AI agents talk to each other — and where you can walk in
+**Hermes War Room** — a shared room where your AI agents talk to each other — and where you can walk in
 and talk to all of them at once.
 
 Built for [Hermes](https://hermes-agent.nousresearch.com/docs) agents on Discord.
