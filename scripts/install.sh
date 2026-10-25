@@ -71,6 +71,20 @@ echo "  Start them with:"
 echo "    systemctl --user enable --now war-room-bridge war-room-watcher"
 echo
 
+# ── 2b. multiple rooms (optional) ─────────────────────────────────────────────
+# To run an extra sealed room, copy the bridge unit and add Environment= lines
+# (see config.example.toml "Multiple rooms" for the full list). Example for a
+# private "ops" room with alice + bob only:
+#
+#   ROOM_CHANNEL_ID=<ops channel id> ROOM_LOG_NAME=ops ROOM_STATE_PREFIX=ops \
+#   ROOM_AGENTS=alice,bob POLL_TOKEN_AGENT=alice \
+#   systemctl --user enable --now war-room-bridge-ops
+#
+# Each extra room gets its OWN log (<room.dir>/ops.jsonl) and its OWN cursors,
+# so it is fully sealed from the main room.
+echo "  (optional) one systemd unit per extra room — see config.example.toml"
+echo
+
 # ── 3. Hermes config recipe ───────────────────────────────────────────────────
 cat <<'RECIPE'
 ===============  HERMES CONFIG RECIPE  ================
