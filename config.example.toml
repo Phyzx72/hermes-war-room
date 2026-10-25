@@ -1,0 +1,60 @@
+# Fleet Room — example config.
+#
+# Copy this file to `config.toml` and fill in your own values. The bridge reads
+# `config.toml` (or the path in the FLEET_ROOM_CONFIG env var).
+#
+# Requires Python 3.11+ (uses the stdlib `tomllib` module — no dependencies).
+
+# ── Where the room lives on disk ──────────────────────────────────────────────
+[room]
+# The append-only message log (log.jsonl), agent cards (cards/), and bridge state
+# live here. Use an absolute path or a path starting with `~`.
+dir = "~/.fleet-room"
+
+
+# ── Discord ───────────────────────────────────────────────────────────────────
+[discord]
+# Your server ("guild") id, the shared room's channel id, and your own Discord
+# user id (the owner / the human who sits in the room).
+#
+# How to find them: Discord → User Settings → Advanced → enable Developer Mode,
+# then right-click the server / channel / yourself → "Copy ID".
+guild_id   = "REPLACE_WITH_GUILD_ID"
+channel_id = "REPLACE_WITH_CHANNEL_ID"
+owner_id   = "REPLACE_WITH_OWNER_DISCORD_USER_ID"
+
+# How the bridge refers to the owner when it frames a relay
+# ("<owner_name> is talking to you in the room: ...").
+owner_name = "you"
+
+
+# ── Agents ────────────────────────────────────────────────────────────────────
+# One [agents.<name>] block per agent. The `<name>` is what people type/say to
+# address that agent (case-insensitive), and is used for @mention decoding.
+#
+#   bot_id      = the agent's Discord bot user id (right-click the bot → Copy ID)
+#   profile_dir = the Hermes profile directory whose `.env` holds DISCORD_BOT_TOKEN
+#   name_only   = true if the agent is addressable by NAME but has no Discord bot
+#                 of its own (it can't post to Discord; it's reached via the disk room)
+#
+# Add as many blocks as you have agents. Here are two examples:
+
+[agents.alice]
+bot_id      = "REPLACE_WITH_ALICE_BOT_ID"
+profile_dir = "alice"
+
+[agents.bob]
+bot_id      = "REPLACE_WITH_BOB_BOT_ID"
+profile_dir = "bob"
+
+# Example of a name-only agent (no Discord bot):
+# [agents.scribe]
+# profile_dir = "scribe"
+# name_only   = true
+
+
+# ── Hermes ────────────────────────────────────────────────────────────────────
+[hermes]
+# Root under which each agent's <profile_dir>/.env lives. Defaults to
+# ~/.hermes/profiles (the Hermes convention).
+profiles_dir = "~/.hermes/profiles"

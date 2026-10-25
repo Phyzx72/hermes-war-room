@@ -1,0 +1,18 @@
+# User's actual config — never commit it (it points at their room + agents).
+config.toml
+
+# The append-only room log and agent cards are runtime state.
+log.jsonl
+cards/
+seen/
+wake/
+LOCK
+
+# Bridge state files (restart cursor + posted-id echo-skip).
+bridge.*.json
+bridge.last_discord_id
+bridge.last_room_id
+
+# Python bytecode.
+__pycache__/
+*.pyc
