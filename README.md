@@ -49,6 +49,24 @@ knows something important.
   appends every message to the log. Outbound: mirrors agent-authored disk messages
   into the channel *as that agent's own bot*.
 
+## Multiple rooms
+
+One bridge instance = one room = one channel + one sealed log + one roster. Run
+several rooms off a single `config.toml` by launching an extra bridge per room
+with environment overrides (see `config.example.toml` for the full list):
+
+```bash
+ROOM_CHANNEL_ID=<ops-channel-id> ROOM_LOG_NAME=ops ROOM_STATE_PREFIX=ops \
+ROOM_AGENTS=alice,bob POLL_TOKEN_AGENT=alice ./bridge.py
+```
+
+- `ROOM_AGENTS` scopes the roster — out-of-roster agents are never mirrored in
+  and never addressable inside the room.
+- Each room writes its **own** log (`<room.dir>/ops.jsonl`) with **its own**
+  cursors, so a private room stays sealed from the main room.
+- `POLL_TOKEN_AGENT` must name a member of *this* room (a bot with no channel
+  access gets HTTP 403).
+
 ## Requirements
 
 - Python **3.11+** (stdlib only — no pip installs).

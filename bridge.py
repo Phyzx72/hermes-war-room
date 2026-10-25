@@ -37,25 +37,35 @@ from pathlib import Path
 
 from config import (
     AGENTS,
-    ALL_NAMES,
+    API,
     BROADCAST_WORDS,
     CHANNEL_ID,
-    ID_TO_NAME,
     LAST_DISCORD,
     LAST_ROOM,
     LOG,
     OWNER_ID,
     OWNER_NAME,
+    POLL_TOKEN_AGENT,
     POSTED_IDS,
+    ROOM_AGENT_SET,
+    ROOM_ALL_NAMES,
+    ROOM_ID_TO_NAME,
     TOKENS,
     UA,
-    API,
 )
 
 
 def _reader_token() -> str | None:
-    """Any bot token that can read the channel (all bots in the room can)."""
-    for tok in TOKENS.values():
+    """The token used to poll the channel. Must be a member of THIS room.
+
+    POLL_TOKEN_AGENT (env) names the agent whose token to use — a bot with no
+    access to the channel returns HTTP 403, so a sealed room must poll with one
+    of its own members. Falls back to the first token-bearing roster agent.
+    """
+    if POLL_TOKEN_AGENT and TOKENS.get(POLL_TOKEN_AGENT):
+        return TOKENS[POLL_TOKEN_AGENT]
+    for name in ROOM_AGENT_SET:
+        tok = TOKENS.get(name)
         if tok:
             return tok
     return None
@@ -76,12 +86,12 @@ def _plain_name_target(text: str) -> str | None:
     """Detect a leading plain-name or @name address ('alice are you there?')."""
     t = text.strip()
     low = t.lower()
-    for name in sorted(ALL_NAMES, key=len, reverse=True):
+    for name in sorted(ROOM_ALL_NAMES, key=len, reverse=True):
         if low.startswith("@" + name) and (
             len(low) == len(name) + 1 or not low[len(name) + 1].isalnum()
         ):
             return name
-    for name in sorted(ALL_NAMES, key=len, reverse=True):
+    for name in sorted(ROOM_ALL_NAMES, key=len, reverse=True):
         if low.startswith(name) and (
             len(low) == len(name) or low[len(name)] in " ,:!?.@-"
         ):
@@ -107,7 +117,7 @@ def decode_mentions(content: str, mentions: list) -> tuple[str, str]:
     """Return (to, cleaned_content). `to` is an agent name or '*' (broadcast)."""
     mentioned = []
     for m in mentions or []:
-        name = ID_TO_NAME.get(m.get("id"))
+        name = ROOM_ID_TO_NAME.get(m.get("id"))
         if name:
             mentioned.append(name)
         elif m.get("id") == OWNER_ID:
@@ -115,7 +125,7 @@ def decode_mentions(content: str, mentions: list) -> tuple[str, str]:
 
     cleaned = content
     for m in mentions or []:
-        nm = ID_TO_NAME.get(m.get("id"), OWNER_NAME.lower() if m.get("id") == OWNER_ID else None)
+        nm = ROOM_ID_TO_NAME.get(m.get("id"), OWNER_NAME.lower() if m.get("id") == OWNER_ID else None)
         cleaned = cleaned.replace(f"<@{m.get('id')}>", f"@{nm}" if nm else "@user")
         cleaned = cleaned.replace(f"<@!{m.get('id')}>", f"@{nm}" if nm else "@user")
 
@@ -167,7 +177,7 @@ def append_discord_to_log(msg: dict) -> None:
     if author_id == OWNER_ID:
         sender = OWNER_NAME.lower()
     elif is_bot:
-        sender = ID_TO_NAME.get(author_id, author_name.lower())
+        sender = ROOM_ID_TO_NAME.get(author_id, author_name.lower())
     else:
         sender = author_name.lower()
 
@@ -216,6 +226,8 @@ def mirror_to_discord(record: dict, dry: bool) -> bool:
     agent = record.get("from", "")
     tok = TOKENS.get(agent)
     if agent not in AGENTS or not tok:
+        return False
+    if agent not in ROOM_AGENT_SET:  # out-of-roster agent — never mirror into this room
         return False
 
     body = (record.get("body") or "").strip()

@@ -58,3 +58,25 @@ profile_dir = "bob"
 # Root under which each agent's <profile_dir>/.env lives. Defaults to
 # ~/.hermes/profiles (the Hermes convention).
 profiles_dir = "~/.hermes/profiles"
+
+
+# ── Multiple rooms ─────────────────────────────────────────────────────────────
+# One bridge instance = one room = one channel + one sealed log + one roster.
+# To run several rooms off this single config.toml, launch an extra bridge per
+# room with environment variables that override the values above:
+#
+#   ROOM_CHANNEL_ID   the Discord channel id for this room
+#   ROOM_LOG_NAME     the log file basename (log.jsonl -> <name>.jsonl)
+#   ROOM_STATE_PREFIX bridge cursor prefix (bridge -> <prefix>) so rooms don't
+#                     clobber each other's last-read cursors
+#   ROOM_AGENTS       comma-separated roster of agent names allowed in this room
+#                     (empty = every agent). Out-of-roster agents are never
+#                     mirrored into the room and never addressable in it.
+#   POLL_TOKEN_AGENT  which agent's bot token polls the channel. Must be a
+#                     member of THIS room — a bot with no access returns HTTP
+#                     403. Defaults to the first token-bearing roster agent.
+#
+# Example — a private "ops" room for alice + bob only, sealed from carol:
+#
+#   ROOM_CHANNEL_ID=... ROOM_LOG_NAME=ops ROOM_STATE_PREFIX=ops \
+#   ROOM_AGENTS=alice,bob POLL_TOKEN_AGENT=alice ./bridge.py

@@ -35,22 +35,29 @@ _cfg = tomllib.loads(CONFIG_PATH.read_text())
 
 # ── room ──────────────────────────────────────────────────────────────────────
 ROOM_DIR = _resolve(_cfg.get("room", {}).get("dir", "~/.fleet-room"))
-LOG = ROOM_DIR / "log.jsonl"
+# Per-room identity (env-overridable): run ONE bridge instance per room, each
+# with its own sealed log name, cursor prefix, and channel. The defaults below
+# keep single-room behaviour identical to before.
+LOG_NAME = os.environ.get("ROOM_LOG_NAME", "log")
+STATE_PREFIX = os.environ.get("ROOM_STATE_PREFIX", "bridge")
+LOG = ROOM_DIR / f"{LOG_NAME}.jsonl"
 CARDS = ROOM_DIR / "cards"
 SEEN = ROOM_DIR / "seen"
 WAKE = ROOM_DIR / "wake"
 LOCK = ROOM_DIR / "LOCK"
 
-# bridge state files
-LAST_DISCORD = ROOM_DIR / "bridge.last_discord_id"
-LAST_ROOM = ROOM_DIR / "bridge.last_room_id"
-POSTED_IDS = ROOM_DIR / "bridge.posted_ids.json"
+# bridge state files (namespaced by STATE_PREFIX so rooms don't clobber cursors)
+LAST_DISCORD = ROOM_DIR / f"{STATE_PREFIX}.last_discord_id"
+LAST_ROOM = ROOM_DIR / f"{STATE_PREFIX}.last_room_id"
+POSTED_IDS = ROOM_DIR / f"{STATE_PREFIX}.posted_ids.json"
 WATCHER_STATE = ROOM_DIR / "watcher.state"
 
 # ── discord ───────────────────────────────────────────────────────────────────
 _discord = _cfg.get("discord", {})
 GUILD_ID = _discord.get("guild_id", "")
-CHANNEL_ID = _discord.get("channel_id", "")
+# Env override lets a second room point at a different channel without editing
+# config.toml (a fleet can run several rooms off one config).
+CHANNEL_ID = os.environ.get("ROOM_CHANNEL_ID") or _discord.get("channel_id", "")
 OWNER_ID = _discord.get("owner_id", "")
 OWNER_NAME = _discord.get("owner_name", "you")
 
@@ -79,6 +86,30 @@ for _name, _spec in (_cfg.get("agents", {}) or {}).items():
     }
 
 ALL_NAMES: set[str] = set(AGENTS)
+
+# ── room-scoped roster (env-overridable) ──────────────────────────────────────
+# ROOM_AGENTS is a comma-separated list of agent names allowed in THIS room
+# (e.g. "einstein,newtonian,neo" for a private ops room). Empty = every agent.
+# Each room instance scopes its own roster so a leak between rooms is impossible
+# at the bridge belt, not just the Discord permission gate.
+ROOM_AGENTS = [
+    n.strip().lower()
+    for n in os.environ.get("ROOM_AGENTS", "").split(",")
+    if n.strip()
+]
+ROOM_AGENT_SET: set[str] = set(ROOM_AGENTS) if ROOM_AGENTS else set(AGENTS)
+ROOM_ID_TO_NAME: dict[str, str] = {
+    a["bot_id"]: name
+    for name, a in AGENTS.items()
+    if name in ROOM_AGENT_SET and a["bot_id"]
+}
+ROOM_NAME_ONLY: set[str] = NAME_ONLY & ROOM_AGENT_SET
+ROOM_ALL_NAMES: set[str] = ROOM_AGENT_SET | ROOM_NAME_ONLY
+
+# Whose token polls the channel. Must be a member of THIS room — a bot that has
+# no access to the channel returns HTTP 403. Default: the first agent with a
+# token in the room roster.
+POLL_TOKEN_AGENT = os.environ.get("POLL_TOKEN_AGENT", "").strip().lower()
 
 # bot user id -> agent name (for decoding @mentions)
 ID_TO_NAME: dict[str, str] = {
